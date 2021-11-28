@@ -3,6 +3,8 @@ import psycopg2
 import random
 import ctypes
 import string
+import subprocess
+import json
 from functools import partial
 
 # IMPORT GENERATOR USERNAME
@@ -16,6 +18,9 @@ DB_USER = 'radius'
 DB_PASS = 'radius'
 DB_HOST = 'localhost'
 
+DB_SQLFILEPATH = 'sub_db.sql'
+JSON_FILEPATH = 'subscribers.json'
+
 COUNT_SUBS = 10
 START_IP = '192.168.1.100'
 PASS_LEN = 5
@@ -28,6 +33,26 @@ def random_mac ():
 def random_pass(length=PASS_LEN):
     letters = string.ascii_letters
     return ''.join(random.choice(letters) for i in range(length))
+
+def save_psqldb(host, database_name, user, password, dest_file, port=5432):
+    """
+    Backup postgres db to a file.
+    """
+    try:
+        process = subprocess.Popen(
+            ['pg_dump',
+                '--dbname=postgresql://{}:{}@{}:{}/{}'.format(user, password, host, port, database_name),
+                '-f', dest_file,],
+            stdout=subprocess.PIPE
+        )
+        output = process.communicate()[0]
+        if int(process.returncode) != 0:
+            print('Command failed. Return code : {}'.format(process.returncode))
+            exit(1)
+        return output
+    except Exception as e:
+        print(e)
+        exit(1)
 
 class Subscriber:
     def __init__(self):
@@ -71,7 +96,8 @@ def main():
                             password		text NOT NULL, \
                             mac    		    text NOT NULL  \
                         );")
-            
+
+            subs = []
             # GENERATE SUBSCRIBERS AND FILL DB
             for _ in range(COUNT_SUBS):
                 sub = Subscriber()
@@ -84,6 +110,11 @@ def main():
                 cur.execute("insert into subscribers(ip, username, password, mac) \
                                          values(%s, %s, %s, %s);",
                                          (sub.ip, sub.name, sub.password, sub.mac))
+                subs.append(sub.__dict__)
+
+            # SAVE SUBS TO JSON
+            with open(JSON_FILEPATH, 'w') as json_file:
+                json.dump(subs, json_file)
 
     return
 
