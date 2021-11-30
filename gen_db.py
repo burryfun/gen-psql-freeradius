@@ -12,6 +12,8 @@ from gen_name import GenUser
 
 # IMPORT C FUNC FOR IP ADDRESS CALCULATION
 ipaddr_calc = ctypes.CDLL('./lib/ipaddrcalc')
+ipaddr_calc.maxIP.argtypes = [ctypes.c_char_p, ctypes.c_uint32]
+ipaddr_calc.maxIP.restype = ctypes.c_char_p
 
 DB_NAME = 'radius'
 DB_USER = 'radius'
