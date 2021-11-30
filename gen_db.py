@@ -69,7 +69,7 @@ class Subscriber:
 
         self.id = Subscriber._counter
         self.ip = Subscriber._ip_counter
-        self.name = GenUser().new() + '_' + str(self.id)
+        self.username = GenUser().new() + '_' + str(self.id)
         self.password = random_pass()
         self.mac = random_mac()
 
@@ -105,13 +105,13 @@ def main():
                 sub = Subscriber()
                 cur.execute("insert into radcheck(username, attribute, op, value) \
                                          values(%s, 'Cleartext-Password', ':=', %s);",
-                                         (sub.name, sub.password))
+                                         (sub.username, sub.password))
                 cur.execute("insert into radreply(username, attribute, value) \
                                          values(%s, 'Framed-IP-Address', %s);", 
-                                         (sub.name, sub.ip))
+                                         (sub.username, sub.ip))
                 cur.execute("insert into subscribers(ip, username, password, mac) \
                                          values(%s, %s, %s, %s);",
-                                         (sub.ip, sub.name, sub.password, sub.mac))
+                                         (sub.ip, sub.username, sub.password, sub.mac))
                 subs.append(sub.__dict__)
 
             # SAVE SUBS TO JSON
